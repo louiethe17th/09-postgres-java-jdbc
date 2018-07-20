@@ -2,6 +2,7 @@ package dbs;
 
 import models.City;
 import models.Country;
+import models.Languages;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -18,6 +19,11 @@ public class WorldDB {
             "SELECT * FROM city " +
                     "JOIN country ON city.countrycode = country.code " +
                     "WHERE country.code = ?";
+
+    private static final String GET_OFFICIAL_LANGUAGE =
+            "SELECT * FROM countrylanguage " +
+                    "WHERE countrycode = ? " +
+            "AND isofficial = TRUE ";
 
     private Connection conn;
 
@@ -129,5 +135,36 @@ public class WorldDB {
         }
 
         return countries;
+    }
+
+
+    //Finds the official language of a country
+    public List<Languages> getOfficailLanguage(String countryCode){
+        //new list to store data
+        List<Languages> languages = new ArrayList<>();
+
+        try {
+            //setting the sql query to use
+            PreparedStatement sql = this.conn.prepareStatement(GET_OFFICIAL_LANGUAGE);
+            sql.setString(1, countryCode);
+
+            ResultSet results = sql.executeQuery();
+
+            //setting each property from the sql results
+            while ( results.next()){
+                Languages language = new Languages();
+                language.countryCode = results.getString("countrycode");
+                language.language = results.getString("language");
+                language.isOfficial = results.getString("isofficial");
+                language.percentage = results.getString("percentage");
+                languages.add(language);
+            }
+
+
+        } catch (SQLException e){
+            e.printStackTrace();
+        }
+
+        return languages;
     }
 }
